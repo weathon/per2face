@@ -22,6 +22,12 @@ See `task.md` for the full task description.
 | PerFace (D2) | test triplet accuracy | **0.9192** (paper: 0.917, accept ≥0.85) |
 | | pretrained-ArcFace baseline | 0.60 |
 
+**Privacy eval (eval_guide.md): see [EVAL_RESULTS.md](EVAL_RESULTS.md).** Headline:
+AVFS conditioning de-identifies and defeats the FaceLinkGen attack (1.5% top-1
+linkage, at chance) but preserves only coarse resemblance; PerFace conditioning
+preserves resemblance but leaks identity (relinkable) even with negative-guidance
+CFG. Privacy–utility tradeoff, AVFS on the privacy end.
+
 ## Key files
 
 - `perface/train_perface.py` — Step 1 training (SGD lr 0.01, m 0.9, wd 5e-4, bs 32)
