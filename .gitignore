@@ -1,0 +1,15 @@
+data/
+*.tar.gz
+*.pdf
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+checkpoints/
+weights/
+outputs/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+wandb/
+runs/
