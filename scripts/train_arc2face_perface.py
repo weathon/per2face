@@ -102,7 +102,8 @@ def main():
     noise_sched = DDPMScheduler.from_pretrained(SD_BASE, subfolder="scheduler")
 
     unet.enable_gradient_checkpointing()
-    text_encoder.gradient_checkpointing_enable()
+    text_encoder.gradient_checkpointing_enable(
+        gradient_checkpointing_kwargs={"use_reentrant": False})
     unet.train()
     text_encoder.train()
 
