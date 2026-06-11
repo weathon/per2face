@@ -13,5 +13,3 @@ __pycache__/
 .ipynb_checkpoints/
 wandb/
 runs/
-Arc2Face/
-a_view_from_somewhere/

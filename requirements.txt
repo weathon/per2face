@@ -1,0 +1,15 @@
+# Tested versions (conda env "arc2face", python 3.11, CUDA 12.1)
+# torch installed with cu121 wheels: pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu121
+torch==2.4.1
+torchvision==0.19.1
+diffusers==0.29.2
+transformers==4.36.0        # CLIPTextModelWrapper needs ~4.36 (modeling_attn_mask_utils)
+insightface==0.7.3
+onnxruntime-gpu             # or onnxruntime (CPU detection, ~10x slower)
+accelerate==1.12.0
+huggingface-hub==0.36.0
+safetensors==0.7.0
+opencv-python==4.11.0.86
+pillow==12.1.0
+numpy==2.4.3
+scipy==1.15.3

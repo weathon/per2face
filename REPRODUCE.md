@@ -10,28 +10,67 @@ RTX A6000 48GB. Scaling notes for better hardware at the bottom.
 
 ---
 
+## Quickstart (fresh server)
+
+```bash
+git clone --recursive https://github.com/weathon/per2face.git && cd per2face
+# (if cloned without --recursive: git submodule update --init)
+
+conda create -n per2face python=3.11 -y && conda activate per2face
+pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu121
+pip install -r requirements.txt
+
+mkdir -p weights checkpoints outputs data
+
+# --- pretrained checkpoints ---
+# ArcFace MS1MV3 R50 (mirror of official insightface arcface_torch zoo)
+curl -L https://huggingface.co/camenduru/show/resolve/main/models/arcface/ms1mv3_arcface_r50_fp16.pth \
+     -o weights/ms1mv3_arcface_r50_fp16.pth         # 174,680,546 bytes
+# Arc2Face UNet+encoder and SD1.5 vae/tokenizer/scheduler (into ./weights/hf)
+python scripts/download_arc2face.py
+# AVFS (optional variant)
+curl -L https://zenodo.org/record/7878655/files/avfs_u.pth -o weights/avfs_u.pth
+
+# --- data ---
+# 1) simCelebA_triplet.tar.gz + triplet_answers.csv: gdrive folder linked at
+#    github.com/kumanotanin/PerFace (triplet_answers.csv is already committed
+#    in this repo at data/triplet_answers.csv)
+tar -xzf simCelebA_triplet.tar.gz -C data/          # -> data/triplet/*.jpg
+# 2) CelebA-HQ 1024x1024 originals (any standard copy), set --images flag
+
+export CUDA_VISIBLE_DEVICES=0
+export LD_LIBRARY_PATH=$(python -c 'import nvidia.cudnn,os;print(os.path.join(os.path.dirname(nvidia.cudnn.__file__),"lib"))')
+
+# --- run order ---
+python perface/train_perface.py                                  # Step 1  (~25 min)
+python scripts/estimate_template.py   # optional: outputs/triplet_template_224.npy ships with the repo
+python scripts/extract_embeddings.py --images <celebahq_dir>     # ~25 min
+python scripts/train_arc2face_perface.py --images <celebahq_dir> # ~8 h on A6000
+python scripts/generate_samples.py --ckpt checkpoints/arc2face_perface/step016000 \
+       --inputs <a few held-out images>
+# AVFS variant (optional):
+python scripts/extract_avfs_embeddings.py --images <celebahq_dir>
+python scripts/train_arc2face_perface.py --images <celebahq_dir> \
+       --embs outputs/avfs_embs.npz --out checkpoints/arc2face_avfs
+```
+
 ## 0. Environment
 
-Python ≥3.10, CUDA GPU. Install:
-
-```
-torch (tested 2.4.1+cu121)   diffusers (tested 0.29.2)
-transformers (tested 4.36.0) insightface (tested 0.7.3)
-onnxruntime(-gpu)            opencv-python  pillow  numpy  huggingface_hub
-```
-
-Notes:
+Python ≥3.10, CUDA GPU. `pip install -r requirements.txt` (see Quickstart for
+the torch cu121 index URL). Notes:
 - `transformers` must be compatible with Arc2Face's `CLIPTextModelWrapper`
   (uses `transformers.modeling_attn_mask_utils`, i.e. ~4.36).
-- insightface's GPU provider needs cuDNN 9 on LD_LIBRARY_PATH; with pip torch:
-  `export LD_LIBRARY_PATH=$SITE_PACKAGES/nvidia/cudnn/lib` (CPU fallback works
-  but is ~10x slower for detection).
-- Set `HF_HOME` inside the project if you must not write outside it.
+- insightface's GPU provider needs cuDNN 9 on LD_LIBRARY_PATH; with pip torch
+  use the bundled copy (export line in Quickstart). CPU fallback works but is
+  ~10x slower for detection.
+- Set `HF_HOME` inside the project if you must not write outside it
+  (`scripts/download_arc2face.py` does this by default).
 
-Third-party repos cloned into the project root (not vendored):
-- `git clone https://github.com/foivospar/Arc2Face` (code only, we use
-  `arc2face/models.py` CLIPTextModelWrapper + `arc2face/utils.py` image_align)
-- `git clone https://github.com/SonyResearch/a_view_from_somewhere` (AVFS only)
+Third-party repos are pinned as git submodules at the project root:
+- `Arc2Face` (github.com/foivospar/Arc2Face @ 8f3acd7) — we use
+  `arc2face/models.py` CLIPTextModelWrapper + `arc2face/utils.py` image_align
+- `a_view_from_somewhere` (github.com/SonyResearch/a_view_from_somewhere
+  @ 1666c86) — AVFS encoder definition only
 
 ## 1. Data and pretrained models
 

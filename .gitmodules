@@ -1,0 +1,6 @@
+[submodule "Arc2Face"]
+	path = Arc2Face
+	url = https://github.com/foivospar/Arc2Face.git
+[submodule "a_view_from_somewhere"]
+	path = a_view_from_somewhere
+	url = https://github.com/SonyResearch/a_view_from_somewhere.git
