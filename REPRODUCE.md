@@ -5,6 +5,13 @@ for an agent or human on a fresh GPU server). Goal per `task.md`: an
 embedding-to-face pipeline where Arc2Face-style generation is conditioned on a
 *perceptual* face embedding (PerFace; optionally AVFS) instead of ArcFace.
 
+**Read the papers first — they are committed in this repo:**
+- `2509.20281v1.pdf` — PerFace (Kumagai et al., ICIP 2025): triplet loss
+  Eq. (1), training recipe Sec. 4.1, D1/D2 splits, Table 1/3 target numbers.
+- `2403.11641.pdf` — Arc2Face (Paraperas Papantoniou et al., ECCV 2024):
+  ID-conditioning mechanism Sec. 3.3, original training recipe in the
+  supplementary "Implementation Details".
+
 Total compute used originally: ~25 min (Step 1) + ~8 h (Step 2) on one
 RTX A6000 48GB. Scaling notes for better hardware at the bottom.
 
