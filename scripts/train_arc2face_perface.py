@@ -116,6 +116,11 @@ def main():
     pipe.set_progress_bar_config(disable=True)
 
     sample_embs = torch.from_numpy(hold_embs[:6].copy()).to(device)
+    ref = Image.new("RGB", (512 * 6, 512))
+    for k, fname in enumerate(hold_files[:6]):
+        im = Image.open(os.path.join(args.images, fname)).convert("RGB")
+        ref.paste(im.resize((512, 512), Image.BILINEAR), (512 * k, 0))
+    ref.save(os.path.join(args.out, "samples_reference.jpg"), quality=92)
 
     opt = torch.optim.AdamW(list(unet.parameters()) + list(text_encoder.parameters()),
                             lr=args.lr, weight_decay=1e-2)
