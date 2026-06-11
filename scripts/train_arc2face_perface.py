@@ -8,7 +8,6 @@ PerFace encoder (precomputed by extract_embeddings.py).
 """
 import argparse
 import json
-import math
 import os
 
 import numpy as np
