@@ -14,3 +14,4 @@ __pycache__/
 wandb/
 runs/
 Arc2Face/
+a_view_from_somewhere/
