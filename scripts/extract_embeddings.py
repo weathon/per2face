@@ -60,18 +60,21 @@ def main():
         batch_crops.clear()
         batch_files.clear()
 
+    PAD = 300  # SCRFD misses tightly-cropped large faces; pad with margin
+
     for i, path in enumerate(paths):
         img = cv2.imread(path)
         if img is None:
             skipped.append(path)
             continue
-        faces = app.get(img)
+        padded = cv2.copyMakeBorder(img, PAD, PAD, PAD, PAD, cv2.BORDER_CONSTANT, value=0)
+        faces = app.get(padded)
         if not faces:
             skipped.append(path)
             continue
         face = max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
-        M, _ = cv2.estimateAffinePartial2D(face.kps.astype(np.float32), template,
-                                           method=cv2.LMEDS)
+        kps = face.kps.astype(np.float32) - PAD
+        M, _ = cv2.estimateAffinePartial2D(kps, template, method=cv2.LMEDS)
         crop = cv2.warpAffine(img, M, (224, 224), borderValue=0)
         crop = cv2.resize(crop, (112, 112), interpolation=cv2.INTER_AREA)
         batch_crops.append(crop[:, :, ::-1].copy())  # BGR -> RGB
