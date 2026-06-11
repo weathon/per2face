@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 ENC="$1"; CKPT="$2"; TAG="$3"
-NTEST="${4:-500}"; NTRAIN="${5:-2000}"
+NTEST="${4:-500}"; NTRAIN="${5:-2000}"; BS="${6:-16}"
 IMAGES="/home/wg25r/fastdata/marshall/celeba_hq_30k/originals"
 PY=/home/wg25r/miniconda/envs/arc2face/bin/python
 export CUDA_VISIBLE_DEVICES=2
@@ -27,11 +27,11 @@ EOF
 OUT="outputs/eval/${TAG}"
 echo "=== generating test set (held-out) ==="
 $PY scripts/eval/build_eval_pairs.py --encoder "$ENC" --ckpt "$CKPT" --images "$IMAGES" \
-    --file-list /tmp/eval_test.txt --limit "$NTEST" --out "${OUT}_test" --batch-size 8
+    --file-list /tmp/eval_test.txt --limit "$NTEST" --out "${OUT}_test" --batch-size "$BS"
 
 echo "=== generating attack-train set ==="
 $PY scripts/eval/build_eval_pairs.py --encoder "$ENC" --ckpt "$CKPT" --images "$IMAGES" \
-    --file-list /tmp/eval_attacktrain.txt --limit "$NTRAIN" --out "${OUT}_attacktrain" --batch-size 8
+    --file-list /tmp/eval_attacktrain.txt --limit "$NTRAIN" --out "${OUT}_attacktrain" --batch-size "$BS"
 
 echo "=== metrics 1 & 2 (PerFace sim up, ArcFace sim down) ==="
 $PY scripts/eval/metrics_sim.py --pairs "${OUT}_test/pairs.npz" | tee "${OUT}_metrics.txt"
