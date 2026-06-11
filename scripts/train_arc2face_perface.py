@@ -17,7 +17,7 @@ from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
 from a2f_common import (ARC2FACE, SD_BASE, build_prompt_ids, encoder_from,
-                        load_tokenizer, project_face_embs_train)
+                        load_embs, load_tokenizer, project_face_embs_train)
 
 from diffusers import (AutoencoderKL, DDPMScheduler,
                        DPMSolverMultistepScheduler, StableDiffusionPipeline,
@@ -83,8 +83,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     device = "cuda"
 
-    data = np.load(args.embs)
-    files, embs = data["files"], data["embs"]
+    files, embs = load_embs(args.embs)
     order = np.argsort(files)
     files, embs = files[order], embs[order]
     train_files, train_embs = files[:-args.holdout], embs[:-args.holdout]

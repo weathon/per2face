@@ -21,6 +21,23 @@ def load_tokenizer():
     return CLIPTokenizer.from_pretrained(SD_BASE, subfolder="tokenizer")
 
 
+def load_embs(npz_path):
+    """Returns (files, embs) with embs L2-normalized.
+
+    Two formats: PerFace saves 'embs' (already unit-norm); AVFS saves
+    'embs_raw' + dataset 'mean' — AVFS is non-negative (positive orthant,
+    raw cosines ~0.9), so we center on the dataset mean before normalizing
+    to get a usable conditioning signal.
+    """
+    import numpy as np
+    data = np.load(npz_path)
+    if "embs" in data:
+        return data["files"], data["embs"]
+    e = data["embs_raw"] - data["mean"]
+    e /= np.linalg.norm(e, axis=1, keepdims=True)
+    return data["files"], e.astype(np.float32)
+
+
 def encoder_from(path_or_repo, subfolder="encoder", dtype=torch.float32):
     return CLIPTextModelWrapper.from_pretrained(path_or_repo, subfolder=subfolder,
                                                 torch_dtype=dtype)
